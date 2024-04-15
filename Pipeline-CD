@@ -1,0 +1,16 @@
+pipeline{
+    agent any
+    envirnment{
+        NODE_IP=""
+        USER=""
+        PROJECT_NAME=""
+        PIPELINE_NAME=""
+    }
+    stages{
+        stage{
+            step("SSH To Server"){
+                
+            }
+        }
+    }
+}

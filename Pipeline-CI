@@ -1,0 +1,65 @@
+pipeline{
+    agent any
+    environment{
+        DOCKER_NAME = "francisgrane"
+    }
+    
+    stages{
+        stage('Clean the Directory'){
+            step{
+                deleteDir()
+            }
+        }
+        stage('Pull te code the Git'){
+            step{
+                git credentialsId: 'gitpass', url: 'https://github.com/francisgrane/DevOps-CICD.git'
+            }
+        }
+        stage("Maven Unit Test"){
+            step{
+                sh "mvn test"
+            }
+        }
+        stage("create Artifact"){
+            step{
+                sh 'mvn clean install'
+            }
+        }
+        stage("Verify the code "){
+            step{
+                sh "mvn verify"
+            }
+        }
+        stage("Build the Docker Image"){
+            step{
+                def JOB=env.JOB_NAME.tolowercase()
+                sh "docker build -t ${JOB}:${BUILD_NUMBER} ."
+            }
+        }
+        stage("Tagging the Image"){
+            step{
+                sh "docker tag ${JOB}:${BUILD_NUMBER} ${DOCKER_NAME}/${JOB}:v${BUILD_NUMBER}"
+                sh "docker tag ${JOB}:${BUILD_NUMBER} ${DOCKER_NAME}/${JOB}:latest"
+            }
+        }
+        stage("Trivy Scan"){
+            step{
+                sh "trivy image  ${BUILD_NUMBER} ${DOCKER_NAME}/${JOB}:v${BUILD_NUMBER}"
+            }
+        }
+        stage("Push The Images to the Dockerub"){
+            step{
+                def JOB=env.JOB_NAME.tolowercase()
+                sh "docker login -u ${DOCKER_NAME} -p ${dockerpass}"
+                sh "docker push ${DOCKER_NAME}/${JOB}:v${BUILD_NUMBER}"
+                sh "docker push ${DOCKER_NAME}/${JOB}:latest"
+            }
+        }
+        stage("Docker Prune"){
+            step{
+                sh "docker imge prune -af"
+            }
+        }
+        
+    }
+}

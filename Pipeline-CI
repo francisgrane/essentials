@@ -32,7 +32,7 @@ pipeline{
         }
         stage("Build the Docker Image"){
             steps{
-                def JOB=env.JOB_NAME.tolowercase()
+                def JOB=env.JOB_NAME.toLowerCase()
                 sh "docker build -t ${JOB}:${BUILD_NUMBER} ."
             }
         }
@@ -49,7 +49,7 @@ pipeline{
         }
         stage("Push The Images to the Dockerub"){
             steps{
-                def JOB=env.JOB_NAME.tolowercase()
+                def JOB=env.JOB_NAME.toLowerCase()
                 sh "docker login -u ${DOCKER_NAME} -p ${dockerpass}"
                 sh "docker push ${DOCKER_NAME}/${JOB}:v${BUILD_NUMBER}"
                 sh "docker push ${DOCKER_NAME}/${JOB}:latest"

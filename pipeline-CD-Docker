@@ -23,13 +23,19 @@ pipeline{
                 
             }
         }
+        
+        stage('Remove Previous Container'){
+	try{
+		sh 'docker rm -f sshimage'
+	}catch(error){
+		//  do nothing if there is an exception
+	}
+        
         stage("Deployment"){
             step{
                 sshagent([SSH_PASS]){
                     sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}"
-                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  kubectl apply -f deployment.yml"
-                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  kubectl apply -f service.yml"
-                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  kubectl rollout restart deploy"
+                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  docker run -itd --name sshimage -p "1000:80" francisgrane/testapp:latest
                     
                 }
             }

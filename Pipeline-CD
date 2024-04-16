@@ -9,8 +9,31 @@ pipeline{
     stages{
         stage{
             step("SSH To Server"){
+                sshagent([SSH_PASS]){
+                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}"
+                    sh "scp var/lib/jenkins/workspace/${PIPELINE_NAME}/${PROJECT_NAME}/deployment.yml ${USER}@${NODE_IP}:home/ec2-user/"
+                    sh "scp var/lib/jenkins/workspace/${PIPELINE_NAME}/${PROJECT_NAME}/service.yml.yml ${USER}@${NODE_IP}:home/ec2-user/"
+                }
                 
             }
         }
+        stage("Permission"){
+            step{
+                input message : "Approve Deployment"
+                
+            }
+        }
+        stage("Deployment"){
+            step{
+                sshagent([SSH_PASS]){
+                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}"
+                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  kubectl apply -f deployment.yml"
+                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  kubectl apply -f service.yml"
+                    sh "ssh -o StrictHostKeyChecking=no ${USER}:${NODE_IP}  kubectl rollout restart deploy"
+                    
+                }
+            }
+        }
+        
     }
-}
+    
